@@ -36,7 +36,8 @@ int main(void) {
     ob.placeOrder(o4);
 
 
-
+    std::cout << sizeof(o1) << std::endl;
+    std::cout << sizeof(ob) << std::endl;
 
 
     std::cout << ob.orders.size() << std::endl;

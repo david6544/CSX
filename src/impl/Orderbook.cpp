@@ -1,10 +1,23 @@
 #include "Orderbook.h"
 
-Orderbook::Orderbook() {
-    orders = std::priority_queue<instrument::Order, std::deque<instrument::Order>, instrument::OrderMatch>();
+
+template <typename T>
+Orderbook<T>::Orderbook() {
+    orders = std::priority_queue<instrument::Order, std::deque<instrument::Order, instrument::BidOrder>();
 }
 
-void Orderbook::placeOrder(instrument::Order order) {
+template <typename T>
+void Orderbook<T>::placeOrder(instrument::Order order) {
     orders.push(order);
     return;
+}
+
+template <typename T>
+instrument::Order getBest() {
+    return orders.top();
+}
+
+template <typename T>
+uint64_t Orderbook<T>::getMarketDepth() {
+    return orders.size();
 }
