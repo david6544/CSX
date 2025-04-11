@@ -21,11 +21,20 @@ class Orderbook {
         T // Comparator
     > orders;
 
+    Orderbook() {
+        orders = std::priority_queue<instrument::Order, std::deque<instrument::Order>, T>();
+    }
     
-    Orderbook();
+    void placeOrder(instrument::Order order) {
+        orders.push(order);
+        return;
+    }
+    
+    instrument::Order getBest() {
+        return orders.top();
+    }
 
-    instrument::Order getBest();
-    void placeOrder(instrument::Order order);
-
-    uint64_t getMarketDepth();
+    uint64_t getMarketDepth() {
+        return orders.size();
+    }
 };

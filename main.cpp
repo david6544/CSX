@@ -29,22 +29,22 @@ int main(void) {
 
 
 
-    Orderbook ob = Orderbook();
-    ob.placeOrder(o1);
-    ob.placeOrder(o2);
-    ob.placeOrder(o3);
-    ob.placeOrder(o4);
-
+    //place a bunch of bids
+    Orderbook bids = Orderbook<instrument::BidOrder>();
+    bids.placeOrder(o1);
+    bids.placeOrder(o2);
+    bids.placeOrder(o3);
+    bids.placeOrder(o4);
 
     std::cout << sizeof(o1) << std::endl;
-    std::cout << sizeof(ob) << std::endl;
+    std::cout << sizeof(bids) << std::endl;
 
 
-    std::cout << ob.orders.size() << std::endl;
-    while (!ob.orders.empty()) {
-        auto o = ob.orders.top();
+    std::cout << bids.orders.size() << std::endl;
+    while (!bids.orders.empty()) {
+        auto o = bids.orders.top();
         std::cout << o.price << " " << o.time << " " << o.quantity << std::endl;
-        ob.orders.pop();
+        bids.orders.pop();
     }
 
     return 0;
