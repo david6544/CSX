@@ -3,13 +3,13 @@
 
 Market::Market() {
     //do the uniqe ptr stuff here
-    this->market = std::unordered_map<instrument::Ticker,Market::books>();
+    this->market = std::unordered_map<instrument::Ticker,Market::books, instrument::TickerHash>();
 }
 
 void Market::addTicker(instrument::Ticker ticker) {
     //do unique ptr stuff here
-    Orderbook<instrument::BidOrder> bidBook = Orderbook<instrument::BidOrder>();
-    Orderbook<instrument::AskOrder> askBook = Orderbook<instrument::AskOrder>();
+    Orderbook<instrument::BidComparator> bidBook = Orderbook<instrument::BidComparator>();
+    Orderbook<instrument::AskComparator> askBook = Orderbook<instrument::AskComparator>();
     Market::books tickerBooks = {
         bidBook,
         askBook,
@@ -22,8 +22,8 @@ void Market::addTicker(instrument::Ticker ticker) {
 bool Market::placeBid(instrument::Ticker ticker, instrument::Order order) {
     Market::books tickerBooks = this->market.at(ticker);
     tickerBooks.bids.placeOrder(order);
-    instrument::Order bestAsk = tickerBooks.asks.getBest();
-    if (!instrument::isOrderEqual(bestAsk, order)) {
+    instrument::Order bestBid = tickerBooks.bids.getBest();
+    if (!instrument::isOrderEqual(bestBid, order)) {
         return 0;
     };
     this->matchOrder(tickerBooks);
@@ -34,15 +34,15 @@ bool Market::placeAsk(instrument::Ticker ticker, instrument::Order order) {
     Market::books tickerBooks = this->market.at(ticker);
     tickerBooks.asks.placeOrder(order);
 
-    instrument::Order bestBid = tickerBooks.bids.getBest();
-    if (!instrument::isOrderEqual(bestBid, order)) {
+    instrument::Order bestAsk = tickerBooks.asks.getBest();
+    if (!instrument::isOrderEqual(bestAsk, order)) {
         return 0;
     };
     this->matchOrder(tickerBooks);
-    return 1;
+return 1;
 }
 
-constexpr void Market::matchOrder(Market::books books) {
+void Market::matchOrder(Market::books books) {
     instrument::Order bestAsk = books.asks.orders.top();
     instrument::Order bestBid = books.bids.orders.top();
     if (bestAsk.price <= bestBid.price) {
@@ -52,7 +52,8 @@ constexpr void Market::matchOrder(Market::books books) {
 
         if (bestAsk.quantity == 0) {
             books.asks.orders.pop();
-        } else if (bestBid.quantity == 0) {
+        }
+        if (bestBid.quantity == 0) {
             books.bids.orders.pop();
         }
     }

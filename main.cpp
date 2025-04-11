@@ -1,4 +1,4 @@
-#include "Orderbook.h"
+#include "Market.h"
 #include <iostream>
 
 int main(void) {
@@ -30,7 +30,7 @@ int main(void) {
 
 
     //place a bunch of bids
-    Orderbook bids = Orderbook<instrument::BidOrder>();
+    Orderbook bids = Orderbook<instrument::BidComparator>();
     bids.placeOrder(o1);
     bids.placeOrder(o2);
     bids.placeOrder(o3);
@@ -38,13 +38,38 @@ int main(void) {
 
     std::cout << sizeof(o1) << std::endl;
     std::cout << sizeof(bids) << std::endl;
-
-
     std::cout << bids.orders.size() << std::endl;
-    while (!bids.orders.empty()) {
+
+    
+
+    /* while (!bids.orders.empty()) {
         auto o = bids.orders.top();
         std::cout << o.price << " " << o.time << " " << o.quantity << std::endl;
         bids.orders.pop();
+    } */
+
+    //place a bunch of asks
+    Orderbook asks = Orderbook<instrument::AskComparator>();
+    asks.placeOrder(o1);
+    asks.placeOrder(o2);
+    asks.placeOrder(o3);
+
+    std::cout << sizeof(o1) << std::endl;
+    std::cout << sizeof(asks) << std::endl;
+    std::cout << asks.orders.size() << std::endl;
+
+    Market m = Market();
+    instrument::Ticker ticker1 = {100};
+    std:: cout << sizeof(ticker1) << " bruh" << std::endl;
+    m.addTicker(ticker1);
+    m.market[ticker1].asks = asks;
+    m.market[ticker1].bids = bids;
+    m.placeAsk(ticker1, o4);
+
+    while (!m.market[ticker1].asks.orders.empty()) {
+        auto o = m.market[ticker1].asks.orders.top();
+        std::cout << o.price << " " << o.time << " " << o.quantity << std::endl;
+        m.market[ticker1].asks.orders.pop();
     }
 
     return 0;
