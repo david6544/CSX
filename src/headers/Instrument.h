@@ -3,6 +3,7 @@
 
 namespace instrument {
     
+    // Ticker names are stored as uint16_t and static_casted to Tickers defined in {Tickers.h}
     typedef uint16_t ticker;
     
     struct Order {
@@ -18,12 +19,6 @@ namespace instrument {
         
         return false;
     }
-
-    enum class OrderType {
-        Ask = 0,
-        Bid = 1,
-    };
-
         
     // Price/time order match for bids
     struct BidComparator {
