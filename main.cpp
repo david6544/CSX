@@ -59,7 +59,7 @@ int main(void) {
     std::cout << asks.orders.size() << std::endl;
 
     Market m = Market();
-    instrument::Ticker ticker1 = {100};
+    instrument::ticker ticker1 = 100;
     std:: cout << sizeof(ticker1) << " bruh" << std::endl;
     m.addTicker(ticker1);
     m.market[ticker1].asks = asks;
