@@ -1,4 +1,8 @@
 #pragma once
+#include<cinttypes>
+#include<random>
+#include<chrono>
+#include"Market.h"
 
 /**
  * This agent will provide initial liquidity on the market at specified prices
@@ -15,4 +19,17 @@ class MarketMaker {
     // has a static delta on spread (could eventually be noised or changed based on market conditions)
     // as the price adjusts, maintain trades around the new price
     // do this on a seperate threads?
+
+    void addLiquidity(Market& market, instrument::ticker ticker);
+    void setPrice(uint16_t price);
+
+
+    MarketMaker();
+
+    static const double spread = 0.01;
+    static const double stddev = 0.005;
+
+    private:
+    uint16_t price;
+
 };

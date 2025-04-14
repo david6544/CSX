@@ -18,6 +18,7 @@ class Market {
         
         bool placeAsk(instrument::ticker ticker, instrument::Order order);
         bool placeBid(instrument::ticker ticker, instrument::Order order);
+        uint32_t getPrice(instrument::ticker ticker);
         
         void matchOrder(books);
     

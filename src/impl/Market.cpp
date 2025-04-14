@@ -58,3 +58,13 @@ void Market::matchOrder(Market::books books) {
         }
     }
 } 
+
+uint32_t Market::getPrice(instrument::ticker ticker) {
+    Orderbook asks = this->market[ticker].asks;
+    Orderbook bids = this->market[ticker].bids;
+
+    uint32_t askPrice = asks.getBest().price;
+    uint32_t bidPrice = bids.getBest().price;
+
+    return (bidPrice + (askPrice - bidPrice) / 2);
+}
