@@ -9,7 +9,7 @@ void MarketMaker::addLiquidity(Market& market, instrument::ticker ticker) {
     
     std::default_random_engine generator(std::random_device{}());
     std::normal_distribution<double> bidDist(price * (1 - spread / 2), price * stddev);
-    std::normal_distribution<double> askDist(price * (1 - spread / 2), price * stddev);
+    std::normal_distribution<double> askDist(price * (1 + spread / 2), price * stddev);
 
     
     for (int i = 0; i < numOrders; ++i) {
