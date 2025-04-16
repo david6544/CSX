@@ -3,27 +3,8 @@
 
 namespace instrument {
     
-    struct Ticker {
-        uint16_t ticker;
-
-        // Add comparison operators for map/set compatibility
-        bool operator==(const Ticker& other) const {
-            return ticker == other.ticker;
-        }
-        
-        bool operator<(const Ticker& other) const {
-            return ticker < other.ticker;
-        }
-    };
-
-    // format of name will be
-    
-     
-    struct TickerHash {
-        size_t operator()(const instrument::Ticker& a) const {
-            return std::hash<uint16_t>()(a.ticker); 
-        }
-    };
+    // Ticker names are stored as uint16_t and static_casted to Tickers defined in {Tickers.h}
+    typedef uint16_t ticker;
     
     struct Order {
         uint64_t time;   
@@ -38,12 +19,6 @@ namespace instrument {
         
         return false;
     }
-
-    enum class OrderType {
-        Ask = 0,
-        Bid = 1,
-    };
-
         
     // Price/time order match for bids
     struct BidComparator {

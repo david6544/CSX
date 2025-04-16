@@ -3,10 +3,10 @@
 
 Market::Market() {
     //do the uniqe ptr stuff here
-    this->market = std::unordered_map<instrument::Ticker,Market::books, instrument::TickerHash>();
+    this->market = std::array<Market::books, marketSize>();
 }
 
-void Market::addTicker(instrument::Ticker ticker) {
+void Market::addTicker(instrument::ticker ticker) {
     //do unique ptr stuff here
     Orderbook<instrument::BidComparator> bidBook = Orderbook<instrument::BidComparator>();
     Orderbook<instrument::AskComparator> askBook = Orderbook<instrument::AskComparator>();
@@ -14,12 +14,12 @@ void Market::addTicker(instrument::Ticker ticker) {
         bidBook,
         askBook,
     };
-    if (market.find(ticker) == market.end()) {
+    if (ticker < market.size()) {
         market[ticker] = tickerBooks;
     }
 }
 
-bool Market::placeBid(instrument::Ticker ticker, instrument::Order order) {
+bool Market::placeBid(instrument::ticker ticker, instrument::Order order) {
     Market::books tickerBooks = this->market.at(ticker);
     tickerBooks.bids.placeOrder(order);
     instrument::Order bestBid = tickerBooks.bids.getBest();
@@ -30,7 +30,7 @@ bool Market::placeBid(instrument::Ticker ticker, instrument::Order order) {
     return 1;
 }
 
-bool Market::placeAsk(instrument::Ticker ticker, instrument::Order order) {
+bool Market::placeAsk(instrument::ticker ticker, instrument::Order order) {
     Market::books tickerBooks = this->market.at(ticker);
     tickerBooks.asks.placeOrder(order);
 
@@ -58,3 +58,13 @@ void Market::matchOrder(Market::books books) {
         }
     }
 } 
+
+uint32_t Market::getPrice(instrument::ticker ticker) {
+    Orderbook asks = this->market[ticker].asks;
+    Orderbook bids = this->market[ticker].bids;
+
+    uint32_t askPrice = asks.getBest().price;
+    uint32_t bidPrice = bids.getBest().price;
+
+    return (bidPrice + (askPrice - bidPrice) / 2);
+}

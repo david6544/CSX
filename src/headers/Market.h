@@ -1,24 +1,28 @@
 
 #include"Orderbook.h"
-#include<unordered_map>
+#include<array>
 
 class Market {
-   
+
+    private:
+        static const uint16_t marketSize = 500;
     public:
+
 
         struct books {
             Orderbook<instrument::BidComparator> bids;
             Orderbook<instrument::AskComparator> asks;
         };
 
-        std::unordered_map<instrument::Ticker,Market::books, instrument::TickerHash> market;
+        std::array<Market::books, marketSize> market;
         
-        bool placeAsk(instrument::Ticker ticker, instrument::Order order);
-        bool placeBid(instrument::Ticker ticker, instrument::Order order);
+        bool placeAsk(instrument::ticker ticker, instrument::Order order);
+        bool placeBid(instrument::ticker ticker, instrument::Order order);
+        uint32_t getPrice(instrument::ticker ticker);
         
         void matchOrder(books);
     
-        void addTicker(instrument::Ticker ticket);
+        void addTicker(instrument::ticker ticket);
         Market();
         
     private:

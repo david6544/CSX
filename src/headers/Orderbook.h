@@ -6,13 +6,7 @@
 template <typename T>// bid or ask comparator
 class Orderbook {
     
-    private:
-    instrument::Ticker instrument;
-    
-    
     public:
-    
-
 
     std::priority_queue
     <
