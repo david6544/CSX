@@ -18,7 +18,7 @@ void MarketMaker::addLiquidity(Market& market, instrument::ticker ticker) {
     
         uint32_t quantity = 100; // could randomize this too
 
-        uint32_t currTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        uint32_t currTime = utils::getCurrentTime();
         market.placeBid(ticker, instrument::Order{.price = bidPrice, .quantity = quantity, .time = currTime});
         market.placeAsk(ticker, instrument::Order{.price = askPrice, .quantity = quantity, .time = currTime});
     }

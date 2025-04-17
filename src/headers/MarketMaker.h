@@ -3,6 +3,7 @@
 #include<random>
 #include<chrono>
 #include"Market.h"
+#include"Utils.h"
 
 /**
  * This agent will provide initial liquidity on the market at specified prices
@@ -26,8 +27,8 @@ class MarketMaker {
 
     MarketMaker();
 
-    static const double spread = 0.01;
-    static const double stddev = 0.005;
+    static constexpr double spread = 0.01;
+    static constexpr double stddev = 0.005;
 
     private:
     uint16_t price;

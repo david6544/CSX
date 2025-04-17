@@ -20,10 +20,11 @@ void Market::addTicker(instrument::ticker ticker) {
 }
 
 bool Market::placeBid(instrument::ticker ticker, instrument::Order order) {
-    Market::books tickerBooks = this->market.at(ticker);
+    Market::books& tickerBooks = this->market.at(ticker);
     tickerBooks.bids.placeOrder(order);
+
     instrument::Order bestBid = tickerBooks.bids.getBest();
-    if (!instrument::isOrderEqual(bestBid, order)) {
+    if (!instrument::isOrderEqual(bestBid, order) || tickerBooks.asks.isEmpty()) {
         return 0;
     };
     this->matchOrder(tickerBooks);
@@ -31,40 +32,40 @@ bool Market::placeBid(instrument::ticker ticker, instrument::Order order) {
 }
 
 bool Market::placeAsk(instrument::ticker ticker, instrument::Order order) {
-    Market::books tickerBooks = this->market.at(ticker);
+    Market::books& tickerBooks = this->market.at(ticker);
     tickerBooks.asks.placeOrder(order);
 
     instrument::Order bestAsk = tickerBooks.asks.getBest();
-    if (!instrument::isOrderEqual(bestAsk, order)) {
+    if (!instrument::isOrderEqual(bestAsk, order) || tickerBooks.bids.isEmpty()) {
         return 0;
     };
     this->matchOrder(tickerBooks);
-return 1;
+    return 1;
 }
 
 void Market::matchOrder(Market::books books) {
-    instrument::Order bestAsk = books.asks.orders.top();
-    instrument::Order bestBid = books.bids.orders.top();
+    instrument::Order bestAsk = books.asks.getBest();
+    instrument::Order bestBid = books.bids.getBest();
     if (bestAsk.price <= bestBid.price) {
+        std::cout << "match at: " << bestAsk.price << " " << bestBid.price << std::endl;
         uint32_t minQuantity = std::min(bestAsk.quantity, bestBid.quantity);
         bestAsk.quantity -= minQuantity;
         bestBid.quantity -= minQuantity;
 
         if (bestAsk.quantity == 0) {
-            books.asks.orders.pop();
+            books.asks.clearBest();
         }
         if (bestBid.quantity == 0) {
-            books.bids.orders.pop();
+            books.bids.clearBest();
         }
     }
 } 
 
 uint32_t Market::getPrice(instrument::ticker ticker) {
-    Orderbook asks = this->market[ticker].asks;
-    Orderbook bids = this->market[ticker].bids;
-
-    uint32_t askPrice = asks.getBest().price;
-    uint32_t bidPrice = bids.getBest().price;
-
+    Market::books books = this->market.at(ticker);
+    
+    uint32_t askPrice = books.asks.getBest().price;
+    uint32_t bidPrice = books.bids.getBest().price;
+    
     return (bidPrice + (askPrice - bidPrice) / 2);
 }
