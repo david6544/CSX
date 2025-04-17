@@ -1,5 +1,6 @@
 #include<cinttypes>
 #include<functional>
+#include "rpc/this_handler.h"
 
 namespace instrument {
     
@@ -10,6 +11,7 @@ namespace instrument {
         uint64_t time;   
         uint32_t price;
         uint32_t quantity;
+        MSGPACK_DEFINE(time, price, quantity);
     };
 
     static constexpr bool isOrderEqual(const Order l, const Order r) {

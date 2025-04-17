@@ -10,10 +10,9 @@ int MarketServer::runServer() {
     std::cout << "starting server" << std::endl;
     rpc::server srv = rpc::server(rpc::constants::DEFAULT_PORT);
 
-    // It's possible to bind non-capturing lambdas
-    srv.bind("getPrice", [this](instrument::ticker ticker) {
-        return m.getPrice(ticker); 
-    });
+    srv.bind("getPrice", getPrice);
+    srv.bind("askOrder", askOrder);
+    srv.bind("bidOrder", bidOrder);
 
     srv.run();
 
