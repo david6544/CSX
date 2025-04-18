@@ -1,6 +1,7 @@
 #include "Instrument.h"
 #include <queue>
 #include <deque>
+#include <iostream>
 
 
 template <typename T>// bid or ask comparator
@@ -15,16 +16,21 @@ class Orderbook {
         T // Comparator
     > orders;
 
-    Orderbook() {
-        orders = std::priority_queue<instrument::Order, std::deque<instrument::Order>, T>();
-    }
+    Orderbook() {}
     
-    void placeOrder(instrument::Order order) {
+    void placeOrder(const instrument::Order& order) {
         orders.push(order);
-        return;
+    }
+
+    void clearBest()  {
+        orders.pop();
+    }
+
+    bool isEmpty() {
+        return orders.empty();
     }
     
-    instrument::Order getBest() {
+    const instrument::Order& getBest() {
         return orders.top();
     }
 

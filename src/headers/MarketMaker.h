@@ -13,7 +13,7 @@
  * Each stock should have it's own market maker at first
  */
 class MarketMaker {
-    
+    public:
     // should take in an initial value defined in config
     // places limit orders on intial value
     // has a static delta on spread (could eventually be noised or changed based on market conditions)
@@ -21,13 +21,11 @@ class MarketMaker {
     // do this on a seperate threads?
 
     void addLiquidity(Market& market, instrument::ticker ticker);
-    void setPrice(uint16_t price);
+    void setPrice(uint32_t price);
 
 
-    MarketMaker();
-
-    static const double spread = 0.01;
-    static const double stddev = 0.005;
+    static constexpr double spread = 0.15;
+    static constexpr double stddev = 0.005;
 
     private:
     uint16_t price;
