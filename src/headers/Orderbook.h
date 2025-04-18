@@ -22,7 +22,7 @@ class Orderbook {
         orders.push(order);
     }
 
-    void clearBest() {
+    void clearBest()  {
         orders.pop();
     }
 
@@ -30,11 +30,11 @@ class Orderbook {
         return orders.empty();
     }
     
-    const instrument::Order& getBest() const {
+    const instrument::Order& getBest() {
         return orders.top();
     }
 
-    uint64_t getMarketDepth() const {
+    uint64_t getMarketDepth() {
         return orders.size();
     }
 };

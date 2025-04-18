@@ -10,9 +10,17 @@ class MarketServer {
     Market& m;
     // Declare the function
 
-    std::function<uint32_t(instrument::ticker)> getPrice = [this](instrument::ticker ticker){ return m.getPrice(ticker); };
-    std::function<bool(instrument::ticker, instrument::Order)> askOrder = [this](instrument::ticker ticker, instrument::Order order){ return m.placeAsk(ticker, order); };
-    std::function<bool(instrument::ticker, instrument::Order)> bidOrder = [this](instrument::ticker ticker, instrument::Order order){ return m.placeBid(ticker, order); };
+    std::function<uint32_t(instrument::ticker)> getPrice = [this](instrument::ticker ticker){
+         return m.getPrice(ticker);
+    };
+
+    std::function<bool(instrument::ticker, instrument::ExternalOrder)> askOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
+        return m.placeAsk(ticker, instrument::createOrder(order)); 
+    };
+    
+    std::function<bool(instrument::ticker, instrument::ExternalOrder)> bidOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
+        return m.placeBid(ticker, instrument::createOrder(order)); 
+    };
 
     int runServer();
 };
