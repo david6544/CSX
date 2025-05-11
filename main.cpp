@@ -3,6 +3,8 @@
 #include "MarketMaker.h"
 #include "Tickers.h"
 #include "Utils.h"
+#include "OrderQueue.h"
+
 #include <iostream>
 #include <thread>
 
@@ -25,16 +27,16 @@ void staticPublisher(Market& m) {
 }
 
 int main(void) {
-    Market m = Market();
+    Market market = Market();
     instrument::ticker ticker1 = TickerNames::BOOGLE;
-    m.addTicker(ticker1);
+    market.addTicker(ticker1);
 
-    MarketServer ms = MarketServer(m);
+    MarketServer ms = MarketServer(market);
     
-    std::thread marketMakerThread(defaultLiquidity, std::ref(m));
+    std::thread marketMakerThread(defaultLiquidity, std::ref(market));
     marketMakerThread.detach();
 
-    std::thread publisherThread(staticPublisher, std::ref(m));
+    std::thread publisherThread(staticPublisher, std::ref(market));
     publisherThread.detach();
 
     ms.runServer();

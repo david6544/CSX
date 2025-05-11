@@ -58,3 +58,11 @@ add_custom_target(test
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Running MarketClient test..."
     )
+
+# Add custom test target
+add_custom_target(main
+    DEPENDS ${PROJECT_NAME}
+    COMMAND ${PROJECT_NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Running main..."
+    )
