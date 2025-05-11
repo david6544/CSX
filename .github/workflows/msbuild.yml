@@ -1,0 +1,37 @@
+name: C/C++ CI
+
+
+on:
+  push:
+    branches: [ "main" ]  # Run on pushes to main
+  pull_request:
+    branches: [ "main" ]  # Run on PRs to main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper version detection
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/build
+      run: cmake ..
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: make
+
+    - name: Run tests
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure
