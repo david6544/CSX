@@ -1,9 +1,13 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
+
 #include "Tickers.h"
 #include "Instrument.h"
 
 #include "rpc/client.h"
 #include "rpc/rpc_error.h"
+
 
 int main(void) {
     rpc::client c("localhost", rpc::constants::DEFAULT_PORT);
