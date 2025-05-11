@@ -14,11 +14,11 @@ class MarketServer {
          return m.getPrice(ticker);
     };
 
-    std::function<bool(instrument::ticker, instrument::ExternalOrder)> askOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
+    std::function<void(instrument::ticker, instrument::ExternalOrder)> askOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
         return m.placeAsk(ticker, instrument::createOrder(order)); 
     };
     
-    std::function<bool(instrument::ticker, instrument::ExternalOrder)> bidOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
+    std::function<void(instrument::ticker, instrument::ExternalOrder)> bidOrder = [this](instrument::ticker ticker, instrument::ExternalOrder order){
         return m.placeBid(ticker, instrument::createOrder(order)); 
     };
 

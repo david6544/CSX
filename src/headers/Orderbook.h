@@ -1,7 +1,12 @@
+#pragma once
+
 #include "Instrument.h"
+#include "OrderQueue.h"
+
 #include <queue>
 #include <deque>
 #include <iostream>
+#include <memory>
 
 
 template <typename T>// bid or ask comparator
@@ -16,10 +21,26 @@ class Orderbook {
         T // Comparator
     > orders;
 
-    Orderbook() {}
+    std::shared_ptr<LockFreeOrderQueue<instrument::Order>>orderQueue;
+
+    Orderbook() {
+        orderQueue = std::make_shared<LockFreeOrderQueue<instrument::Order>>(3000);
+    }
+
+    Orderbook(size_t messageCapacity) {
+        orderQueue = std::make_shared<LockFreeOrderQueue<instrument::Order>>(messageCapacity);
+    }
     
     void placeOrder(const instrument::Order& order) {
-        orders.push(order);
+        this->orderQueue.get()->enqueue(order);
+    }
+    
+    void executeOrder() {
+        auto opt = this->orderQueue.get()->dequeue();
+        if (opt) {
+            auto order = std::move(*opt); // possibly slow? need to look into optionals and move sematics
+            orders.push(order);
+        }
     }
 
     void clearBest()  {

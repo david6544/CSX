@@ -1,10 +1,12 @@
 #include "Market.h"
-#include<thread>
-
 
 Market::Market() {
     //do the uniqe ptr stuff here
     this->market = std::array<Market::books, marketSize>();
+
+    //Start order execution threads
+    this->executionThread = std::thread(&Market::processOrdersLoop, this);
+    this->executionThread.detach();
 }
 
 void Market::addTicker(instrument::ticker ticker) {
@@ -20,31 +22,37 @@ void Market::addTicker(instrument::ticker ticker) {
     }
 }
 
-bool Market::placeBid(instrument::ticker ticker, const instrument::Order & order) {
-
+void Market::placeBid(instrument::ticker ticker, const instrument::Order & order) {
     Market::books& tickerBooks = this->market.at(ticker);
     tickerBooks.bids.placeOrder(order);
-
-    const instrument::Order& bestBid = tickerBooks.bids.getBest();
-    if (!instrument::isOrderEqual(bestBid, order) || tickerBooks.asks.isEmpty()) {
-        return 0;
-    };
-    this->matchOrder(tickerBooks);
-    return 1;
 }
 
-bool Market::placeAsk(instrument::ticker ticker, const instrument::Order& order) {
-
+void Market::placeAsk(instrument::ticker ticker, const instrument::Order& order) {
     Market::books& tickerBooks = this->market.at(ticker);
     tickerBooks.asks.placeOrder(order);
-
-    const instrument::Order& bestAsk = tickerBooks.asks.getBest();
-    if (!instrument::isOrderEqual(bestAsk, order) || tickerBooks.bids.isEmpty()) {
-        return 0;
-    };
-    this->matchOrder(tickerBooks);
-    return 1;
 }
+
+void Market::processOrdersLoop() {
+    while (true) {
+        //Process all tickers
+        for (instrument::ticker ticker = 0; ticker < this->marketSize; ++ticker) {
+            if (ticker >= market.size()) continue;
+
+            auto& tickerBooks = market[ticker];
+
+            tickerBooks.bids.executeOrder();
+            tickerBooks.asks.executeOrder();
+
+            if (!tickerBooks.bids.isEmpty() && !tickerBooks.asks.isEmpty()) {
+                matchOrder(tickerBooks);
+            }
+        }
+
+        //Throttle for cpu
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
+    }
+}
+
 void Market::matchOrder(Market::books& books) {
 
     if (books.asks.isEmpty() || books.bids.isEmpty()) {

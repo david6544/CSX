@@ -20,7 +20,7 @@ int main(void) {
     };
 
     instrument::ExternalOrder o3 = {
-        .price = 1500,
+        .price = 500,
         .quantity = 50000,
     };
 
@@ -53,7 +53,7 @@ int main(void) {
 
         //c.call("bidOrder", ticker1, o1);
         //c.call("bidOrder", ticker1, o2);
-        c.call("bidOrder", ticker1, o3);
+        c.call("askOrder", ticker1, o3);
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
         
