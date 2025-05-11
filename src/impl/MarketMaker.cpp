@@ -35,7 +35,7 @@ void MarketMaker::addLiquidity(Market& market, instrument::ticker ticker) {
             .time = currTime,
             .price = askPrice,
             .quantity = quantity,
-        });
+        }); 
     }
 
 }
