@@ -1,5 +1,5 @@
 <script>
-    const { title } = $props();
+    export let title;
     
     // Example navigation items - replace with your actual routes
     const navItems = [
