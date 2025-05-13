@@ -4,6 +4,8 @@
 #include "Tickers.h"
 #include "Utils.h"
 #include "OrderQueue.h"
+#include "MarketUiClient.h"
+#include "MarketUiServer.h"
 
 #include <iostream>
 #include <thread>
@@ -26,6 +28,22 @@ void staticPublisher(Market& m) {
     }
 }
 
+void testServer() {
+    // Create the server and keep it alive
+    auto globalServer = new MarketUiServer("127.0.0.1", 8081);
+    globalServer->start();
+
+    
+    // Print confirmation
+    std::cout << "WebSocket server started on 127.0.0.1:8081" << std::endl;
+    
+    // Keep the thread alive
+    while(true) {
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::cout << "WebSocket server still running..." << std::endl;
+    }
+}
+
 int main(void) {
     Market market = Market();
     instrument::ticker ticker1 = TickerNames::BOOGLE;
@@ -33,11 +51,14 @@ int main(void) {
 
     MarketServer ms = MarketServer(market);
     
-    std::thread marketMakerThread(defaultLiquidity, std::ref(market));
-    marketMakerThread.detach();
+    //std::thread marketMakerThread(defaultLiquidity, std::ref(market));
+    //marketMakerThread.detach();
 
-    std::thread publisherThread(staticPublisher, std::ref(market));
-    publisherThread.detach();
+    //std::thread publisherThread(staticPublisher, std::ref(market));
+    //publisherThread.detach();
+
+    std::thread uiServerThread(testServer);
+    uiServerThread.detach();
 
     ms.runServer();
     return 0;

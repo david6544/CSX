@@ -1,5 +1,7 @@
-#include<cinttypes>
-#include<functional>
+#pragma once
+
+#include <cinttypes>
+#include <functional>
 #include "rpc/this_handler.h"
 #include "Utils.h"
 

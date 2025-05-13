@@ -1,4 +1,11 @@
 <script>
+    import { onMount } from 'svelte'
+    import { initWebSocket, sendOrder } from '$lib/services/api';
+
+    onMount(() => {
+        initWebSocket();
+    });
+
     // Mock data for demonstration
     const portfolio = {
         totalValue: 15420.65,
@@ -43,6 +50,15 @@
             { symbol: 'NFLX', change: -0.5 }
         ]
     };
+    
+    function handleOrderSubmit() {
+        const newOrder = {
+            price: 6969,
+            quantity: 5,
+        }
+        sendOrder(newOrder);
+        console.log('Order sent:', newOrder);
+    }
 </script>
 
 <!-- Home Page-->
@@ -66,6 +82,10 @@
                 <span class="value">${portfolio.dailyChange.toLocaleString()} ({portfolio.dailyChangePercent}%)</span>
                 <span class="label">Today</span>
             </div>
+        </div>
+
+        <div class='action-button trade-action'>
+            <button on:click={handleOrderSubmit}>Quick Trade</button>
         </div>
         
         <table class="holdings-table">
