@@ -19,7 +19,6 @@ private:
     net::io_context ioContext;
     websocket::stream<beast::tcp_stream> websocketStream;
     beast::flat_buffer messageBuffer;
-    std::string recievedMessage; // change this?
     std::string host;
     std::string port;
 

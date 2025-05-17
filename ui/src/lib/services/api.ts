@@ -94,7 +94,7 @@ export function initWebSocket() {
               break;
 
             default:
-              console.warn('unkown message type');
+              console.warn('unknown message type');
           }
         }).catch(error => {
           console.error('Error decoding message:', error);
