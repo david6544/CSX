@@ -5,14 +5,16 @@ project(CSX VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Boost 1.70.0 REQUIRED COMPONENTS system thread)
 
-# Get gRPC
+# Only fetch rpclib - don't fetch msgpack-c separately
 include(FetchContent)
 FetchContent_Declare(
   rpclib
   GIT_REPOSITORY https://github.com/rpclib/rpclib
   GIT_TAG        v2.2.1
 )
+
 set(FETCHCONTENT_QUIET OFF)
 FetchContent_MakeAvailable(rpclib)
 
@@ -20,15 +22,15 @@ FetchContent_MakeAvailable(rpclib)
 include_directories(
     ${PROJECT_SOURCE_DIR}/src/headers
     ${PROJECT_SOURCE_DIR}/src/service
+    ${Boost_INCLUDE_DIRS}  # Add Boost include path
     ${PROTO_SRC_DIR}
+    ${rpclib_SOURCE_DIR}/include  # Add rpclib include path
 )
 
-
-# Source files - explicitly add main.cpp from root directory
+# Source files
 file(GLOB_RECURSE SRC_FILES
     "${PROJECT_SOURCE_DIR}/src/**/*.cpp"
 )
-
 
 # Add main.cpp from root directory
 set(SOURCES
@@ -42,14 +44,19 @@ file(GLOB_RECURSE HEADERS
     "${PROJECT_SOURCE_DIR}/src/headers/*.h"
 )
 
-
 # Main executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME} PRIVATE rpc)
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    rpc
+    ${Boost_LIBRARIES}
+)
 
 # Test executable for MarketClient
 add_executable(MarketClient ${PROJECT_SOURCE_DIR}/src/test/MarketClientTest.cc)
-target_link_libraries(MarketClient PRIVATE rpc)
+target_link_libraries(MarketClient PRIVATE 
+    rpc
+    ${Boost_LIBRARIES}  # Link Boost libraries 
+)
 
 # Add custom test target
 add_custom_target(test

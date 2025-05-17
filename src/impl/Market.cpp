@@ -4,7 +4,10 @@ Market::Market() {
     //do the uniqe ptr stuff here
     this->market = std::array<Market::books, marketSize>();
 
-    //Start order execution threads
+    for (auto& price : cachedPrices) {
+        price.store(0, std::memory_order_relaxed);
+    }
+
     this->executionThread = std::thread(&Market::processOrdersLoop, this);
     this->executionThread.detach();
 }
@@ -44,7 +47,7 @@ void Market::processOrdersLoop() {
             tickerBooks.asks.executeOrder();
 
             if (!tickerBooks.bids.isEmpty() && !tickerBooks.asks.isEmpty()) {
-                matchOrder(tickerBooks);
+                matchOrder(tickerBooks, ticker);
             }
         }
 
@@ -53,7 +56,7 @@ void Market::processOrdersLoop() {
     }
 }
 
-void Market::matchOrder(Market::books& books) {
+void Market::matchOrder(Market::books& books, instrument::ticker ticker) {
 
     if (books.asks.isEmpty() || books.bids.isEmpty()) {
         return;
@@ -92,16 +95,36 @@ void Market::matchOrder(Market::books& books) {
             books.bids.placeOrder(newBid);
         }
     }
+
+    //update cachedPrice
+    if (!books.asks.isEmpty() && !books.bids.isEmpty()) {
+        uint32_t askPrice = books.asks.getBest().price;
+        uint32_t bidPrice = books.bids.getBest().price;
+        uint32_t midPrice = bidPrice + ((askPrice - bidPrice) / 2);
+        
+        // Store price atomically
+        cachedPrices[ticker].store(midPrice, std::memory_order_release);
+    }
 }
 
 uint32_t Market::getPrice(instrument::ticker ticker) {
+
+    uint32_t cachedPrice = cachedPrices[ticker].load(std::memory_order_acquire);
+
+    if (cachedPrice > 0) {
+        return cachedPrice;
+    }
+    
     Market::books& books = this->market.at(ticker);
     if (books.asks.isEmpty() || books.bids.isEmpty()) {
         return 0;
     }
+
     uint32_t askPrice = books.asks.getBest().price;
     uint32_t bidPrice = books.bids.getBest().price;
-    //std::cout << "price: " << askPrice << " " << bidPrice << std::endl;
-    std::cout << (bidPrice + ((askPrice - bidPrice) / 2)) << std::endl;
-    return (bidPrice + ((askPrice - bidPrice) / 2));
+    uint32_t midPrice = bidPrice + ((askPrice - bidPrice) / 2);
+    
+    cachedPrices[ticker].store(midPrice, std::memory_order_release);
+    
+    return midPrice;
 }

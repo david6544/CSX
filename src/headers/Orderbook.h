@@ -38,7 +38,7 @@ class Orderbook {
     void executeOrder() {
         auto opt = this->orderQueue.get()->dequeue();
         if (opt) {
-            auto order = std::move(*opt); // possibly slow? need to look into optionals and move sematics
+            auto order = std::move(*opt); // possibly slow? need to look into move sematics for optionals
             orders.push(order);
         }
     }

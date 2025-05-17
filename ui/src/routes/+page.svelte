@@ -1,4 +1,12 @@
 <script>
+    import { onMount } from 'svelte';
+    import { sendOrder, initWebSocket} from '$lib/services/api';
+    import PriceDisplay from '$lib/components/widgets/PriceDisplay.svelte';
+
+    onMount(() => {
+        initWebSocket();
+    });
+
     // Mock data for demonstration
     const portfolio = {
         totalValue: 15420.65,
@@ -43,6 +51,16 @@
             { symbol: 'NFLX', change: -0.5 }
         ]
     };
+    
+    function handleOrderSubmit() {
+        const newOrder = {
+            price: 6969,
+            quantity: 5
+        };
+        
+        sendOrder(newOrder);
+        console.log('Order sent:', newOrder);
+    }
 </script>
 
 <!-- Home Page-->
@@ -51,6 +69,10 @@
 <section class="welcome-banner">
     <h1>Welcome to CSX Market Simulator</h1>
     <p>Track, trade and analyze your virtual portfolio</p>
+</section>
+
+<section class="card market-data">
+    <PriceDisplay />
 </section>
 
 <div class="dashboard">
@@ -66,6 +88,10 @@
                 <span class="value">${portfolio.dailyChange.toLocaleString()} ({portfolio.dailyChangePercent}%)</span>
                 <span class="label">Today</span>
             </div>
+        </div>
+
+        <div class='action-button trade-action'>
+            <button on:click={handleOrderSubmit}>Quick Trade</button>
         </div>
         
         <table class="holdings-table">
