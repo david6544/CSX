@@ -1,6 +1,7 @@
 <script>
-    import { onMount } from 'svelte'
-    import { initWebSocket, sendOrder } from '$lib/services/api';
+    import { onMount } from 'svelte';
+    import { sendOrder, initWebSocket} from '$lib/services/api';
+    import PriceDisplay from '$lib/components/widgets/PriceDisplay.svelte';
 
     onMount(() => {
         initWebSocket();
@@ -54,8 +55,9 @@
     function handleOrderSubmit() {
         const newOrder = {
             price: 6969,
-            quantity: 5,
-        }
+            quantity: 5
+        };
+        
         sendOrder(newOrder);
         console.log('Order sent:', newOrder);
     }
@@ -67,6 +69,10 @@
 <section class="welcome-banner">
     <h1>Welcome to CSX Market Simulator</h1>
     <p>Track, trade and analyze your virtual portfolio</p>
+</section>
+
+<section class="card market-data">
+    <PriceDisplay />
 </section>
 
 <div class="dashboard">

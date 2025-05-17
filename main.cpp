@@ -21,26 +21,39 @@ void defaultLiquidity(Market& m) {
     }
 }
 
-void staticPublisher(Market& m) {
+void pricePublisherThread(Market& m, std::shared_ptr<MarketUiServer> server, instrument::ticker tickerSymbol) {
+    std::cout << "Starting price publisher for ticker " << tickerSymbol << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     while (1) {
-        m.getPrice(TickerNames::BOOGLE);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        try {
+            auto price = m.getPrice(tickerSymbol);
+            server->broadcastPrice(price, tickerSymbol);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::cout << price << "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }  catch (const std::exception& e) {
+            std::cerr << "Error in price publisher: " << e.what() << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(5)); // Retry after delay
+        }
     }
 }
 
-void testServer() {
+void testServer(Market& m) {
     // Create the server and keep it alive
-    auto globalServer = new MarketUiServer("127.0.0.1", 8081);
+    auto globalServer = std::make_shared<MarketUiServer>("127.0.0.1", 8081);
     globalServer->start();
 
     
     // Print confirmation
     std::cout << "WebSocket server started on 127.0.0.1:8081" << std::endl;
     
+    std::thread publisherThread(pricePublisherThread, std::ref(m), globalServer, TickerNames::BOOGLE);
+    publisherThread.detach();
+
     // Keep the thread alive
     while(true) {
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-        std::cout << "WebSocket server still running..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
@@ -51,14 +64,11 @@ int main(void) {
 
     MarketServer ms = MarketServer(market);
     
-    //std::thread marketMakerThread(defaultLiquidity, std::ref(market));
-    //marketMakerThread.detach();
+    std::thread marketMakerThread(defaultLiquidity, std::ref(market));
+    marketMakerThread.detach();
 
-    //std::thread publisherThread(staticPublisher, std::ref(market));
-    //publisherThread.detach();
-
-    std::thread uiServerThread(testServer);
-    uiServerThread.detach();
+    std::thread uiServerThread(testServer, std::ref(market));
+    uiServerThread.detach(); 
 
     ms.runServer();
     return 0;

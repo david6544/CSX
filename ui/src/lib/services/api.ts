@@ -1,6 +1,7 @@
 import { decode, encode } from "@msgpack/msgpack";
 import type { Order } from "$lib/types/stock";
 import { browser } from "$app/environment";
+import { writable } from "svelte/store";
 
 // Message type constants
 const MessageTypes = {
@@ -8,6 +9,12 @@ const MessageTypes = {
   PRICE_REQUEST: 0x02,
   MARKET_DATA: 0x03,
 };
+
+// Create Svelte stores for reactive data
+export const tickerPrices = writable<Record<number, number>>({});
+export const lastOrder = writable<any>(null);
+export const connectionStatus = writable<boolean>(false);
+
 
 let webSocket: WebSocket | null = null;
 
@@ -70,16 +77,36 @@ export function initWebSocket() {
     webSocket.onmessage = (event: MessageEvent<any>) => {
       if (event.data instanceof Blob) {
         event.data.arrayBuffer().then(buffer => {
-          const order = decode(new Uint8Array(buffer));
-          console.log('Recieved order: ', order);
+
+          const data = new Uint8Array(buffer);
+
+          const messageType = data[0];
+
+          const payload = data.slice(1);
+
+          const decodedPayload = decode(payload);
+
+          console.log('Message Type: ', messageType);
+
+          switch (messageType) {
+            case MessageTypes.MARKET_DATA:
+              handlePriceUpdate(decodedPayload);
+              break;
+
+            default:
+              console.warn('unkown message type');
+          }
+        }).catch(error => {
+          console.error('Error decoding message:', error);
         });
       } else {
-        console.log('Recieved Text message: ', event.data);
+        console.log('Received Text message: ', event.data);
       }
     }
     
     webSocket.onopen = () => {
       console.log("WebSocket connected");
+      connectionStatus.set(true);
     };
     
     webSocket.onerror = (error) => {
@@ -93,5 +120,16 @@ export function initWebSocket() {
   }
 
   return webSocket;
+}
+
+// Function to handle price updates
+function handlePriceUpdate(data: any) {
+  // Check if data has ticker and price fields
+  console.log(`Price update for ticker ${data[0]}: ${data[1]}`);
+  
+  // Update the store with new price
+  tickerPrices.update(prices => {
+    return { ...prices, [data[0]]: data[1] };
+  });
 }
 

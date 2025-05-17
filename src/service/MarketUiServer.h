@@ -16,6 +16,7 @@ private:
     net::io_context ioContext;
     std::shared_ptr<WsListener> listener;
     std::thread serverThread;
+    std::mutex broadcastMutex;
     bool running = false;
 
 public:
@@ -46,6 +47,15 @@ public:
                 serverThread.join();
             }
             running = false;
+        }
+    }
+
+    void broadcastPrice(const uint32_t& price, const uint16_t& ticker) {
+        std::lock_guard<std::mutex> lock(broadcastMutex);
+        if (listener) { 
+            listener->broadcastPrice(price, ticker);
+        } else {
+            std::cout << "No listener available for broadcasting" << std::endl;
         }
     }
 };

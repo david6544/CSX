@@ -36,11 +36,16 @@ class MarketUiSession : public std::enable_shared_from_this<MarketUiSession> {
     //possibly look into udp for *blazingly fast* request
     websocket::stream<beast::tcp_stream> webSocketStream;
     beast::flat_buffer messageBuffer;   
+    bool active = true;
 
     public:
     explicit MarketUiSession(tcp::socket&& socket)
         : webSocketStream(std::move(socket))
     {}
+
+    bool isActive() const {
+        return active;
+    }
 
     void runServer() {
         //Set suggested timeout settings for websocket
@@ -66,11 +71,15 @@ class MarketUiSession : public std::enable_shared_from_this<MarketUiSession> {
     }
 
     void onAccept(beast::error_code errorCode) {
-        if (errorCode) return fail(errorCode, "accept");
+        if (errorCode) {
+            active = false;
+            return fail(errorCode, "accept");
+        }
 
         std::cout << "Websocket client connected" << std::endl;
 
         //Read message
+        active = true;
         doRead();
     }
 
@@ -237,18 +246,48 @@ class MarketUiSession : public std::enable_shared_from_this<MarketUiSession> {
         );
     }
 
+    
+
+    void publishTickerPrice(const uint32_t& price, const uint16_t& ticker) {
+        try {
+            std::string message;
+            message.push_back(static_cast<char>(endpoints::MessageType::MarketData));
+
+            endpoints::PriceUpdate update{ticker, price};
+            
+            std::stringstream buffer;
+            msgpack::pack(buffer, update);
+            message += buffer.str();
+            
+            // Set binary mode for MessagePack data
+            webSocketStream.binary(true);
+            webSocketStream.async_write(
+                net::buffer(message),
+                beast::bind_front_handler(&MarketUiSession::onWrite, shared_from_this())
+            );
+
+        } catch (const std::exception& e) {
+            std::cerr << "Error publishing price: " << e.what() << "\n";
+            active = false;
+        }
+    }
+
     void onWrite(beast::error_code errorCode, std::size_t transferBytes) {
         boost::ignore_unused(transferBytes);
 
         if (errorCode) {
-            return fail(errorCode, "write");
+            // Handle the "operation_canceled" error gracefully
+            if (errorCode == net::error::operation_aborted) {
+                std::cerr << "Write operation canceled (client disconnected)\n";
+                active = false;  // Mark session as inactive
+                return;
+            }
+            
+            // Handle other errors
+            fail(errorCode, "write");
+            active = false;
+            return;
         }
-
-        //Clear buffer
-        messageBuffer.consume(messageBuffer.size());
-
-        //Do another read
-        this->doRead();
     }
 };
 
@@ -256,6 +295,10 @@ class WsListener : public std::enable_shared_from_this<WsListener> {
     
     net::io_context& ioContext;
     tcp::acceptor acceptor;
+
+    //track all active sessions
+    std::vector<std::shared_ptr<MarketUiSession>> activeSessions;
+    std::mutex sessionsMutex;
 
     public:
     
@@ -298,11 +341,10 @@ class WsListener : public std::enable_shared_from_this<WsListener> {
         }
     }
 
+
     void run() {
         doAccept();
     }
-
-    private:
     
     void doAccept() {
         // New connection get it's own strand (essentially its own thread)
@@ -319,9 +361,29 @@ class WsListener : public std::enable_shared_from_this<WsListener> {
             fail(errorCode, "listen");
         } else {
             //Create session and run
-            std::make_shared<MarketUiSession>(std::move(socket))->runServer();
+            auto session = std::make_shared<MarketUiSession>(std::move(socket));
+            
+            std::lock_guard<std::mutex> lock(sessionsMutex);
+            activeSessions.push_back(session);
+
+            session->runServer();
         }
 
         doAccept();
+    }
+
+    void broadcastPrice(const uint32_t& price, const uint16_t& ticker) {
+        std::lock_guard<std::mutex> lock(sessionsMutex);
+
+        activeSessions.erase(
+            std::remove_if(activeSessions.begin(), activeSessions.end(),
+            [](const std::shared_ptr<MarketUiSession>& session) {
+                return !session->isActive();
+            }),
+            activeSessions.end());
+
+        for (auto& session : activeSessions) {
+            session->publishTickerPrice(price, ticker);
+        }
     }
 };
